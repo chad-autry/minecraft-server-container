@@ -6,9 +6,12 @@
 
 A docker container for running a forge server in the attached disk
 
+Mostly wraps java. Expects the minecraft server jar and all other files to come on the provided volume
+
 ## Usage
+Expected command is something like . . .
 
-
+sudo docker run -i -t -d -v /minecraft:/minecraftserver --expose 25565 chadautry/minecraft-server-container
 
 ## The Future
 In the early stages yet, hard code many things
