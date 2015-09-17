@@ -1,0 +1,23 @@
+{
+  "name": "stdin-eval-stdout",
+  "version": "0.0.1",
+  "description": "A docker minecraft server container",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chad-autry/minecraft-server-container.git"
+  },
+  "keywords": [
+    "Docker",
+    "Minecraft"
+  ],
+  "author": {
+    "name": "Chad Autry",
+    "email": "chad.autry@gmail.com",
+    "url": "http://chad-autry.github.io/"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chad-autry/minecraft-server-container/issues"
+  },
+  "homepage": "https://github.com/chad-autry/minecraft-server-container"
+}
