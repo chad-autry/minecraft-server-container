@@ -1,6 +1,6 @@
 {
   "name": "stdin-eval-stdout",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A docker minecraft server container",
   "repository": {
     "type": "git",
