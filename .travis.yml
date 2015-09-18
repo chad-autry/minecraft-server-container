@@ -10,7 +10,7 @@ env:
   - GH_REF: github.com/chad-autry/minecraft-server-container
 script:
 - docker build -t chadautry/minecraft-server-container:latest .
-- if [[ ! -z "$TRAVIS_TAG" ]]; then docker tag chadautry/stdin-eval-stdout:latest chadautry/minecraft-server-container:$TRAVIS_TAG ; fi
+- if [[ ! -z "$TRAVIS_TAG" ]]; then docker tag chadautry/minecraft-server-container:latest chadautry/minecraft-server-container:$TRAVIS_TAG ; fi
 after_success:
 - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
 - docker push chadautry/minecraft-server-container
