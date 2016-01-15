@@ -14,7 +14,7 @@ This README is my attempt at a step by step of how to use the container to host 
 3. Third, you need a disk or volume to put your game server files on. 
    * If you're following along with my choices, I had some issues finding documentation on how to mout my GCE disk on CoreOS. From [StackOverflow](http://stackoverflow.com/questions/23376755/cannot-format-and-mount-disk-on-gce-instance) the command is 
 ```shell
-sudo /usr/share/oem/google-startup-scripts/safe_format_and_mount -m "mkfs.ext4 -F" /dev/disk/by-id/google-persistent-disk-1 minecraft
+sudo /usr/share/oem/google-startup-scripts/safe_format_and_mount -m "mkfs.ext4 -F" /dev/disk/by-id/google-persistent-disk-1 /minecraft
 ```
 4. Fourth, you need your Forge based server files. Installing Forge is more than this readme will get into, but there are plenty of tutorials out there, such as [this one from Gamepedia](http://minecraft.gamepedia.com/Tutorials/Setting_up_a_Minecraft_Forge_server).
    * Since MineCraft is a Java program, you can simply install the server locally (even on Windows), and then copy the files over for the next step 
@@ -78,12 +78,11 @@ sudo docker exec mc_server /bin/sh /var/minecraft/containerizedMinecraftServer.s
   *  'saveoff' the action for the script to carry out. It pauses writes to the disk.
 2. Next run the backup. Use another [container](https://github.com/chad-autry/alpine-rdiff-backup) which wraps [rdiff-backup](http://www.nongnu.org/rdiff-backup/index.html)
 ```shell
-sudo docker run --name mc_server -rm -v /minecraft/server:/var/source -v /minecraft/backups:/var/destination chadautry/alpine-rdiff-backup /var/source /var/destination
+sudo docker run --name mc_server -v /minecraft/server:/var/source -v /minecraft/backups:/var/destination chadautry/alpine-rdiff-backup /var/source /var/destination
 ```
 * 'sudo' makes the command run as root. This isn't a generally reccomended way of doing things, but it makes the user id consistent between the OS and the docker containers.
 * 'docker run' invokes the docker command with its run action
 * '--name mc_backup' is naming the container instance so it can be identifed later
-* '-rm' makes docker clean up the container when it exits, there is no persistent data
 * '-v /minecraft/server:/var/source' attaches the directory with our minecraft server files to the location we will use it
 * '-v /minecraft/backups:/var/destination' attaches the directory which contains the backups
   * As written, both the application files and backups are on the same network disk. The backups are intended to protect from MineCraft (or some mods) from corrupting the data. It is not sufficient for hardware failure which the host provider is relied on for. If this was important production data it should be backed up to a different data center. 
