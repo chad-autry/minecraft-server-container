@@ -21,7 +21,7 @@ PORT=25565
 
 
 mc_start() {
-    #Create a fifo to act as the servers stdin
+    #Create a fifo to act as the server's stdin
     mkfifo /tmp/srv-input
 
     #finally start the server, By tailing the fifo and piping it to the stdin, we avoid any EOF and automatically get newline characters.
