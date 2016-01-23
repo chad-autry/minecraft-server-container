@@ -60,7 +60,7 @@ Similarly we can also stop the server using the script . . .
 ```shell
 sudo docker exec mc_server /bin/sh /usr/bin/containerizedMinecraftServer.sh stop
 ```
-Before you can restart a stopped server, you will need to remove the old container. The container itself didn't have any persistent data (it is all on the attached volume) so it is totall safe to do so.
+Before you can restart a stopped server, you will need to remove the old container. The container itself didn't have any persistent data (it is all on the attached volume) so it is totally safe to do so.
 ```
 sudo docker rm mc_server
 ```
@@ -71,7 +71,7 @@ It is possible to backup a server while it is running, without huge impact to us
 
 1. First of all, use the utility script already on the container to stop the server from writting to disk.
 ```shell
-sudo docker exec mc_server /bin/sh /usr/bin/containerizedMinecraftServer.sh mc_saveoff
+sudo docker exec mc_server /bin/sh /usr/bin/containerizedMinecraftServer.sh saveoff
 ```
 * 'sudo' makes the command run as root. This isn't a generally reccomended way of doing things, but it makes the user id consistent between the OS and the docker containers.
 * 'docker exec' invokes docker and tells it to run a command in an already running container
@@ -95,7 +95,7 @@ sudo docker run --rm -v /minecraft/world:/var/source -v /minecraft/backups:/var/
 * '/var/source /var/destination' the parameters to rdiff-backup. Tells it where to backup from and to.
 3. Finally, turn writes to disk back on using
 ```shell
-sudo docker exec mc_server /bin/sh /var/minecraft/containerizedMinecraftServer.sh mc_saveon
+sudo docker exec mc_server /bin/sh /usr/bin/containerizedMinecraftServer.sh saveon
 ```
 * 'sudo' makes the command run as root. This isn't a generally reccomended way of doing things, but it makes the user id consistent between the OS and the docker containers.
 * 'docker exec' invokes docker and tells it to run a command in an already running container
@@ -105,12 +105,28 @@ sudo docker exec mc_server /bin/sh /var/minecraft/containerizedMinecraftServer.s
   *  '/var/minecraft/containerizedMinecraftServer.sh' the mounted location of the custom utility script
   *  'saveon' the action for the script to carry out. It resumes writes to the disk.
 
-## Automatic Backups
+## Timed Backup
 Assuming you just leave your server running 24/7, you probablly want it to automatically back up its data every so often
 TODO
 
+## Backup on VM Shutdown
+To automatically backup your Minecraft server and allow for a safe shutdown when the VM is stopped, go into the instance console and add the following script as custom metadata with the key 'shutdown-script'
+```shell
+#! /bin/bash
+sudo docker exec mc_server /bin/sh /usr/bin/containerizedMinecraftServer.sh exec "say The Virtual Machine is being shut down. Turning off saves and backing up the world."
+sudo docker exec mc_server /bin/sh /usr/bin/containerizedMinecraftServer.sh saveoff
+sudo docker run --rm -v /minecraft/world:/var/source -v /minecraft/backups:/var/destination chadautry/alpine-rdiff-backup /var/source /var/destination
+```
+Note: Because of a known issue with GCE, your VM will immediatelly loose connection on shutdown (users won't see the message and will be instantlly diconnected). Run sudo shutdown from the console if you want the shutdown message to be seen.
+
 ## Automatic Restart
-TODO
+To automatically restart your minecraft server whenever the VM is restarted, go into the the instance console and add the following script as custom metadata with the key 'startup-script'
+```shell
+#! /bin/bash
+sudo /usr/share/oem/google-startup-scripts/safe_format_and_mount -m "mkfs.ext4 -F" /dev/disk/by-id/google-disk-1 /minecraft
+sudo docker rm mc_server
+sudo docker run -d --name mc_server -v /minecraft:/var/minecraft -p 25565:25565 chadautry/minecraft-server-container
+```
 
 ## Monitoring 
 TODO
