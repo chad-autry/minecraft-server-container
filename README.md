@@ -109,23 +109,29 @@ sudo docker exec mc_server /bin/sh /usr/bin/containerizedMinecraftServer.sh save
 Assuming you just leave your server running 24/7, you probablly want it to automatically back up its data every so often
 TODO
 
-## Backup on VM Shutdown
-To automatically backup your Minecraft server and allow for a safe shutdown when the VM is stopped, go into the instance console and add the following script as custom metadata with the key 'shutdown-script'
-```shell
-#! /bin/bash
-sudo docker exec mc_server /bin/sh /usr/bin/containerizedMinecraftServer.sh exec "say The Virtual Machine is being shut down. Turning off saves and backing up the world."
-sudo docker exec mc_server /bin/sh /usr/bin/containerizedMinecraftServer.sh saveoff
-sudo docker run --rm -v /minecraft/world:/var/source -v /minecraft/backups:/var/destination chadautry/alpine-rdiff-backup /var/source /var/destination
-```
-Note: Because of a known issue with GCE, your VM will immediatelly loose connection on shutdown (users won't see the message and will be instantlly diconnected). Run sudo shutdown from the console if you want the shutdown message to be seen.
+## Automatically Startup and Save on Shutdown
+We're using CoreOS; so lets use systemd to bring the server up when the instance turns on, and safely backup and halt the server when the instance is brought down. Create a file named minecraft.service in /etc/systemd/system and copy these contents into it
+```yaml
+[Unit]
+Description=Minecraft
+After=docker.service
+Requires=docker.service
 
-## Automatic Restart
-To automatically restart your minecraft server whenever the VM is restarted, go into the the instance console and add the following script as custom metadata with the key 'startup-script'
+[Service]
+ExecStartPre=-/usr/bin/docker pull chadautry/alpine-rdiff-backup
+ExecStartPre=-/usr/bin/docker rm mc_server
+ExecStart=/usr/bin/docker run --name mc_server -v /minecraft:/var/minecraft -p 25565:25565 chadautry/minecraft-server-container
+ExecStop=/usr/bin/docker exec mc_server /bin/sh /usr/bin/containerizedMinecraftServer.sh exec "say The Virtual Machine is being shut down. Turning off saves and backing up the world." ; /
+ /usr/bin/docker exec mc_server /bin/sh /usr/bin/containerizedMinecraftServer.sh saveoff ; /
+ /usr/bin/docker run --rm -v /minecraft/world:/var/source -v /minecraft/backups:/var/destination chadautry/alpine-rdiff-backup /var/source /var/destination
+
+[Install]
+WantedBy=multi-user.target
+```
+Then stop the server if it is already running, and execute the commands
 ```shell
-#! /bin/bash
-sudo /usr/share/oem/google-startup-scripts/safe_format_and_mount -m "mkfs.ext4 -F" /dev/disk/by-id/google-disk-1 /minecraft
-sudo docker rm mc_server
-sudo docker run -d --name mc_server -v /minecraft:/var/minecraft -p 25565:25565 chadautry/minecraft-server-container
+sudo systemctl start minecraft.service
+sudo systemctl enable minecraft.service
 ```
 
 ## Monitoring 
