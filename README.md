@@ -25,6 +25,7 @@ sudo docker run -d --name sftp_server -v /minecraft:/home/minecrafter/minecraft 
 ```
    * Make sure to open port 2222 from your remote server to allow the connection. Make sure to stop and remove the container when you're done.
 6. Finally, make a symlink to the Forge server application called forge_latest.jar. Or simply rename it. "forge_latest.jar" is the name the script inside the container will be expecting.
+   * Make sure the symlink is relative to the local directory, we'll be mapping the /minecraft directory later and an absolute path won't work
 
 ## Start the Server
 To start the server we simply execute the command
