@@ -16,14 +16,19 @@ This README is my attempt at a step by step of how to use the container to host 
 
 4. Fourth, you need your Forge based server files. Installing Forge is more than this readme will get into, but there are plenty of tutorials out there, such as [this one from Gamepedia](http://minecraft.gamepedia.com/Tutorials/Setting_up_a_Minecraft_Forge_server).
    * Since MineCraft is a Java program, you can simply install the server locally (even on Windows), and then copy the files over for the next step 
-5. Fifth, put your MineCraft files over onto the server. You can use a [google cloud storage](https://cloud.google.com/storage/docs/) bucket to transfer your files.
+5. Fifth, put your MineCraft files over onto the server. You can use a [google cloud storage](https://cloud.google.com/storage/docs/) bucket to transfer your files. 
+Or there is another container I use to host a temporary FTP server and is usefull for moving files back and forth from your local host. 
+```shel
+sudo docker run -d --name sftp_server -v /minecraft:/home/minecrafter/minecraft:z -p 2222:22 atmoz/sftp minecrafter:minecrafter:1001
+```
+   * Make sure to open port 2222 from your remote server to allow the connection. Make sure to stop and remove the container when you're done.
 6. Finally, make a symlink to the Forge server application called forge_latest.jar. Or simply rename it. "forge_latest.jar" is the name the script inside the container will be expecting.
    * Make sure the symlink is relative to the local directory, we'll be mapping the /minecraft directory later and an absolute path won't work
 
 ## Start the Server
 To start the server we simply execute the command
 ```shell
-sudo docker run -d --name mc_server -v /minecraft:/var/minecraft -p 25565:25565 chadautry/minecraft-server-container
+sudo docker run -d --name mc_server -v /minecraft:/var/minecraft:z -p 25565:25565 chadautry/minecraft-server-container
 ```
 * 'sudo' makes the command run as root. This isn't a generally reccomended way of doing things, but it makes the user id consistent between the OS and the docker containers.
 * 'docker run' invokes the docker command with its run action
@@ -76,7 +81,7 @@ sudo docker exec mc_server /bin/sh /usr/bin/containerizedMinecraftServer.sh save
   *  'saveoff' the action for the script to carry out. It pauses writes to the disk.
 2. Next run the backup. Use another [container](https://github.com/chad-autry/alpine-rdiff-backup) which wraps [rdiff-backup](http://www.nongnu.org/rdiff-backup/index.html)
 ```shell
-sudo docker run --rm -v /minecraft/world:/var/source -v /minecraft/backups:/var/destination chadautry/alpine-rdiff-backup /var/source /var/destination
+sudo docker run --rm -v /minecraft/world:/var/source :z-v /minecraft/backups:/var/destination:z chadautry/alpine-rdiff-backup /var/source /var/destination
 ```
 * 'sudo' makes the command run as root. This isn't a generally reccomended way of doing things, but it makes the user id consistent between the OS and the docker containers.
 * 'docker run' invokes the docker command with its run action
@@ -114,10 +119,10 @@ Requires=docker.service
 [Service]
 ExecStartPre=-/usr/bin/docker pull chadautry/alpine-rdiff-backup
 ExecStartPre=-/usr/bin/docker rm mc_server
-ExecStart=/usr/bin/docker run --name mc_server -v /minecraft:/var/minecraft -p 25565:25565 chadautry/minecraft-server-container
-ExecStop=/usr/bin/docker exec mc_server /bin/sh /usr/bin/containerizedMinecraftServer.sh exec "say The Virtual Machine is being shut down. Turning off saves and backing up the world." ; /
- /usr/bin/docker exec mc_server /bin/sh /usr/bin/containerizedMinecraftServer.sh saveoff ; /
- /usr/bin/docker run --rm -v /minecraft/world:/var/source -v /minecraft/backups:/var/destination chadautry/alpine-rdiff-backup /var/source /var/destination
+ExecStart=/usr/bin/docker run --name mc_server -v /minecraft:/var/minecraft:z -p 25565:25565 chadautry/minecraft-server-container
+ExecStop=/usr/bin/docker exec mc_server /bin/sh /usr/bin/containerizedMinecraftServer.sh exec "say The Virtual Machine is being shut down. Turning off saves and backing up the world." ; \
+ /usr/bin/docker exec mc_server /bin/sh /usr/bin/containerizedMinecraftServer.sh saveoff ; \
+ /usr/bin/docker run --rm -v /minecraft/world:/var/source:z -v /minecraft/backups:/var/destination:z chadautry/alpine-rdiff-backup /var/source /var/destination
 
 [Install]
 WantedBy=multi-user.target
