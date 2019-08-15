@@ -10,20 +10,13 @@ This README is my attempt at a step by step of how to use the container to host 
 
 ## Prep
 1. First of all to run your MineCraft server you require a computer to host it on. Personally I go with Google Compute Engine, but you could just as eaisly run on Amazon Web Services, or a machine you directlly control.
-2. Second, you need to decide on an OS image to use. I went with CoreOS since it is smaller and comes pre-installed with docker, which is what we'll be using.
+2. Second, you need to decide on an OS image to use. Latest CentOS should be a good choice.
 3. Third, you need a disk or volume to put your game server files on.
    * If you're duplicating my choices, you'll need to pick a disk type and size on GCE. Looking at a 2 player server for a week, it was not very read/write intensive. A 20GB standard disk should give more than enough read/write capacity. There are minitoring tools on the console to double check this and it is easy to size up later. (On GCE your read/write scales with disk size)
-   * If you're following along with my choices, I had some issues finding documentation on how to mount my GCE disk on CoreOS. From [StackOverflow](http://stackoverflow.com/questions/23376755/cannot-format-and-mount-disk-on-gce-instance) the command is 
-```shell
-sudo /usr/share/oem/google-startup-scripts/safe_format_and_mount -m "mkfs.ext4 -F" /dev/disk/by-id/google-disk-1 /minecraft
-```
+
 4. Fourth, you need your Forge based server files. Installing Forge is more than this readme will get into, but there are plenty of tutorials out there, such as [this one from Gamepedia](http://minecraft.gamepedia.com/Tutorials/Setting_up_a_Minecraft_Forge_server).
    * Since MineCraft is a Java program, you can simply install the server locally (even on Windows), and then copy the files over for the next step 
-5. Fifth, put your MineCraft files over onto the server. There is another container I use to host a temporary FTP server and is usefull for moving files back and forth from your local host. 
-```shel
-sudo docker run -d --name sftp_server -v /minecraft:/home/minecrafter/minecraft -p 2222:22 atmoz/sftp minecrafter:minecrafter:1001
-```
-   * Make sure to open port 2222 from your remote server to allow the connection. Make sure to stop and remove the container when you're done.
+5. Fifth, put your MineCraft files over onto the server. You can use a [google cloud storage](https://cloud.google.com/storage/docs/) bucket to transfer your files.
 6. Finally, make a symlink to the Forge server application called forge_latest.jar. Or simply rename it. "forge_latest.jar" is the name the script inside the container will be expecting.
    * Make sure the symlink is relative to the local directory, we'll be mapping the /minecraft directory later and an absolute path won't work
 
