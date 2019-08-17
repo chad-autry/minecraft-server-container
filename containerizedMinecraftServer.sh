@@ -6,7 +6,7 @@
 # Settings start
 SERVICE='/var/minecraft/forge_latest.jar'
 
-MEMORY_OPTS="-Xmx3G -Xms3G"
+MEMORY_OPTS="-Xmx6.5G -Xms6.5G"
 
 INVOCATION="/usr/bin/java ${MEMORY_OPTS} -jar $SERVICE nogui"
 
